@@ -1,0 +1,35 @@
+
+/*! \mainpage EventSystem API Reference
+
+	The EventSystem library provides a decoupled publish/subscribe event model.
+	Event topics are registered by name and can have one or more typesafe paramerers.
+	Subscribers can be lambdas, free functions or member functions.
+	Events can be published asynchronously, and will be stored in a queue for synchronous processing.
+	
+	Example code:
+	\code{.cpp}
+	ES::EventSystem es;
+	
+	// subscribe with lambda
+	es.subscribe("Event", [](std::string arg) {
+		std::cout << "Got argument " << arg << std::endl;
+	});
+	
+	// subscribe with member function
+	Foo foo;
+	es.subscribe("AnotherEvent", &Foo::handleEvent, &foo);
+	
+	// Multiple parameters are supported
+	es.subscribe("MultiparamEvent", [](std::string arg1, int arg2) {
+		...
+	});
+	
+	// enqueue an event
+	std::string eventContent = "Hello World!";
+	es.publish("Event", eventContent);
+	
+	// process queued events
+	es.process();
+	\endcode
+
+*/

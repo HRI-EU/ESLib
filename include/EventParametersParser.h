@@ -50,6 +50,8 @@ namespace ES {
 enum class ParameterType {
   /// @brief A string, no conversion is necessary
   STRING,
+  /// @brief Truth value
+  BOOL,
   /// @brief Integral number
   INT,
   /// @brief Floating point number
@@ -108,6 +110,39 @@ struct ParameterValueParser<std::string> {
 
   static std::string parse(const std::string& stringValue) {
     return stringValue;
+  }
+};
+
+/// @brief ParameterValueParser for bool parameters
+template<>
+struct ParameterValueParser<bool> {
+  static constexpr ParameterType valueType = ParameterType::BOOL;
+
+
+
+  static bool parse(const std::string& stringValue) {
+    // supports "true" and "false" in arbitrary case
+    if (matches(stringValue, "true")) {
+      return true;
+    }
+    if (matches(stringValue, "false")) {
+      return false;
+    }
+    throw std::invalid_argument("Illegal boolean value");
+  }
+
+private:
+  // a helper for lower-case string comparison.
+  static bool matches(const std::string& value, const char* expected) {
+    if (value.size() != strlen(expected))
+      return false;
+
+    for (int i = 0; i < value.size(); ++i) {
+      if (tolower(value[i]) != expected[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 };
 

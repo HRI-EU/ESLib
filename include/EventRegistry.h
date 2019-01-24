@@ -297,6 +297,10 @@ public:
               os << "STRING" << std::endl;
               break;
 
+            case ParameterType::BOOL:
+              os << "BOOL" << std::endl;
+              break;
+
             default:
               os << "UNSUPPORTED: ";
               event->appendEventArgsDescription(os);

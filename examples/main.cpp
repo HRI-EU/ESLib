@@ -265,6 +265,11 @@ int main()
   // test with parsed args
   event3->getParametersParser()->callEvent({"10", "2.5"});
 
+  auto event4 = es.registerEvent<bool>("event4");
+  event4->addSubscriber([](bool arg) {cout << "Boolean value: " << boolalpha << arg << endl;});
+  event4->getParametersParser()->callEvent({"True"});
+  event4->getParametersParser()->callEvent({"fAlSe"});
+
   es.print(cout);
 
   cout << endl << "Test revealed " << nErrors << " errors" << endl;

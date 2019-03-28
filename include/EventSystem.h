@@ -335,6 +335,14 @@ public:
     dynamicQueue.process();
   }
 
+  /**
+   * @brief Process all events in the queue. If more events are queued during processing, they are picked up as well.
+   */
+  void processUntilEmpty()
+  {
+    dynamicQueue.processUntilEmpty();
+  }
+
 protected:
   /// @brief queue for published events
   EventQueue dynamicQueue;

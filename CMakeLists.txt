@@ -24,7 +24,9 @@ ENDIF()
 # TODO windows. If even necessary, since windows isn't stuck with old cmake/gcc like linux...
 
 # A test executable
-ADD_EXECUTABLE(TestEventSystem examples/main.cpp)
+ADD_EXECUTABLE(TestEventSystem 
+  examples/main.cpp
+  examples/test_subscriptiononly.cpp)
 TARGET_INCLUDE_DIRECTORIES(TestEventSystem PRIVATE ${EventSystem_INCLUDE_DIR})
 
 # Generate documentation

@@ -212,17 +212,26 @@ public:
 
   /**
    * @brief Process all events in the queue.
+   *
+   * Will ignore events that get queued during processing.
+   *
+   * @return false if the queue was empty.
    */
-  void process()
+  bool process()
   {
     // unique_lock makes sure exceptions are handled
     std::unique_lock<std::recursive_mutex> guard(queueMutex, std::defer_lock);
     // aquire mutex
-    // it's ok to block the mutex during the entire loop, since the enqueuing will happen asynchronously.
     // TODO maybe a timed try-lock, to ensure the main loop isn't blocked forever.
     guard.lock();
     // grab queue
     QueuedEventBase* cur = eventQueueHead;
+    if (cur == NULL)
+    {
+      // queue is empty
+      return false;
+    }
+
     // and clear head/tail references, thus the queue is empty now
     eventQueueHead = NULL;
     eventQueueTail = NULL;
@@ -241,6 +250,16 @@ public:
       delete cur;
       cur = next;
     }
+    return true;
+  }
+
+  /**
+   * @brief Process all events in the queue. If more events are queued during processing, they are picked up as well.
+   */
+  void processUntilEmpty()
+  {
+    // simply call process until the queue is empty.
+    while (process());
   }
 
   /**

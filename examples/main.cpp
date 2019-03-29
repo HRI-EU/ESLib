@@ -35,6 +35,8 @@
 
 #include "EventSystem.h"
 
+#include "test_subscriptiononly.h"
+
 #include <iostream>
 
 using namespace std;
@@ -186,7 +188,7 @@ int main()
   // test subscriber handles
   ES::SubscriptionHandle handle = event1->addSubscriber(event1_handler_temp);
   event1->call("With temp");
-  handle.unsubscribe();
+  release_subscription(handle);
   event1->call("Without temp");
 
   // the same with subscription

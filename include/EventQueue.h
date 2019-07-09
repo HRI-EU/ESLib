@@ -81,6 +81,9 @@ private:
 
     // call to pass the event to it's handlers
     virtual void fire() = 0;
+
+    // get the subscriber collection for this event
+    virtual const SubscriberCollectionBase* getSubscribers() const = 0;
   };
 
   /**
@@ -107,6 +110,11 @@ private:
     {
       // call event handlers
       handlerRef->call_tuple(args);
+    }
+
+    virtual const SubscriberCollectionBase* getSubscribers() const
+    {
+      return handlerRef;
     }
   };
 
@@ -298,6 +306,90 @@ public:
     delete toProcess;
 
     return true;
+  }
+
+  /**
+   * @brief Process all events for the given subscribers.
+   *
+   * @param[in] subscribers subscriber collection to process events for.
+   */
+  void processForSubscribers(const SubscriberCollectionBase* subscribers)
+  {
+    // unique_lock makes sure exceptions are handled
+    std::unique_lock<std::recursive_mutex> guard(queueMutex, std::defer_lock);
+    // aquire mutex
+    // TODO maybe a timed try-lock, to ensure the main loop isn't blocked forever.
+    guard.lock();
+
+    // obtain head queued event
+    QueuedEventBase* cur = eventQueueHead;
+    if (cur == NULL) {
+      // queue is empty
+      return;
+    }
+
+
+    // loop through events, moving those with the right subscribers into a separate queue.
+    QueuedEventBase* fireQueueHead = NULL;
+    QueuedEventBase* fireQueueTail = NULL;
+    // need to track last item for removals
+    QueuedEventBase* last = NULL;
+    while (cur != NULL)
+    {
+      if (cur->getSubscribers() == subscribers)
+      {
+        // found one.
+        // remove it from the queue.
+        QueuedEventBase* toFire = cur;
+        cur = toFire->next;
+        toFire->next = NULL;
+        if (last != NULL)
+        {
+          last->next = cur;
+        }
+        else if (toFire == eventQueueHead)
+        {
+          eventQueueHead = cur;
+        }
+        if (toFire == eventQueueTail)
+        {
+          eventQueueTail = last;
+        }
+
+        // put it into the fire queue
+        if (fireQueueHead == NULL)
+        {
+          fireQueueHead = toFire;
+        }
+        else
+        {
+          fireQueueTail->next = toFire;
+        }
+        fireQueueTail = toFire;
+      }
+      else
+      {
+        // move ahead
+        last = cur;
+        cur = cur->next;
+      }
+    }
+
+    // now the queue is detached from this, so we can unlock.
+    guard.unlock();
+
+    // loop through event queue
+    cur = fireQueueHead;
+    while (cur != NULL)
+    {
+      // fire event to handlers
+      cur->fire();
+      // delete event object
+      QueuedEventBase* next = cur->next;
+
+      delete cur;
+      cur = next;
+    }
   }
 
   /**

@@ -243,6 +243,16 @@ int main()
     es.publish("TestEvent", 1);
 
     es.process();
+
+    // test processing single event
+    es.publish("TestEvent", 1);
+    es.publish<std::string>("StrEvent", "Str1");
+    es.publish("TestEvent", 2);
+    es.publish<std::string>("StrEvent", "Str2");
+
+    es.processNamed("StrEvent");
+
+    es.process();
   }
 
   // Test stuff with arg parsing

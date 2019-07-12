@@ -343,6 +343,15 @@ public:
     dynamicQueue.processUntilEmpty();
   }
 
+  /**
+   * @brief Process all queued events for a single named event.
+   * @param name event name
+   */
+  void processNamed(std::string name)
+  {
+    auto subscribers = getSubscribers(name);
+    dynamicQueue.processForSubscribers(subscribers);
+  }
 protected:
   /// @brief queue for published events
   EventQueue dynamicQueue;

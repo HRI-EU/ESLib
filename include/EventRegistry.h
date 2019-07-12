@@ -202,6 +202,30 @@ public:
   }
 
   /**
+   * @brief Retrieve the subscriber collection for the given named event, without typecasting.
+   *
+   * Use this to access the parts that aren't type dependent. C++ is smart and will
+   * automatically choose the right overload.
+   *
+   * @param name event name
+   *
+   * @return subscriber collection for the registered event, or NULL if the event was not registered.
+   */
+  SubscriberCollectionBase* getSubscribers(std::string name)
+  {
+    // aquire mutex - released automatically on return
+    std::unique_lock<std::mutex> lock(registryMutex);
+    // locate in map
+    auto entry = subscribersByEventName.find(name);
+    if (entry == subscribersByEventName.end())
+    {
+      // does not exist
+      return NULL;
+    }
+    return entry->second;
+  }
+
+  /**
    * @brief Retrieve the subscriber collection for the given named event, or create it if not found.
    *
    * If the event is already registered, the event argument types must match the ones

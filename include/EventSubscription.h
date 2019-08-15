@@ -157,12 +157,20 @@ public:
    */
   void unsubscribe()
   {
-    // guard against re-
+    // guard against empty reference
     if (subscriberCollection == NULL)
     {
       return;
     }
     subscriberCollection->removeHandler(subscriberId);
+    subscriberCollection = NULL;
+  }
+
+  /**
+   * @brief Clear the handle without removing the subscription.
+   */
+  void clear()
+  {
     subscriberCollection = NULL;
   }
 };
@@ -250,7 +258,7 @@ public:
   SubscriptionHandle release()
   {
     SubscriptionHandle res = *this;
-    *this = SubscriptionHandle();
+    clear();
     return res;
   }
 };

@@ -180,18 +180,32 @@ private:
     { this, newId};
   }
 
-  virtual void removeHandler(SubscriberIdType handlerId)
+  virtual void removeSubscriber(SubscriberIdType subscriberId)
   {
     // look for the referenced handler in list
     for (auto it = handlers.begin(); it != handlers.end(); it++)
     {
-      if (it->id == handlerId)
+      if (it->id == subscriberId)
       {
         // found handler, remove it
         handlers.erase(it);
         return;
       }
     }
+  }
+
+  virtual bool isSubscribed(SubscriberIdType subscriberId) const
+  {
+    // look for the referenced handler in list
+    for (auto it = handlers.begin(); it != handlers.end(); it++)
+    {
+      if (it->id == subscriberId)
+      {
+        // found handler
+        return true;
+      }
+    }
+    return false;
   }
 
 public:

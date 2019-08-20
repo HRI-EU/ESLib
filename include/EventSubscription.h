@@ -90,10 +90,14 @@ private:
   friend class SubscriberCollection;
 
   // type of the handler identifier.
+  // this id is unique per SubscriberCollection. ids will not be reused.
   typedef unsigned int SubscriberIdType;
 
   // remove a subscriber by id. Used by SubscritionHandle.
-  virtual void removeHandler(SubscriberIdType handlerId) = 0;
+  virtual void removeSubscriber(SubscriberIdType subscriberId) = 0;
+
+  // check if a subscriber was removed
+  virtual bool isSubscribed(SubscriberIdType subscriberId) const = 0;
 };
 
 /**
@@ -162,7 +166,7 @@ public:
     {
       return;
     }
-    subscriberCollection->removeHandler(subscriberId);
+    subscriberCollection->removeSubscriber(subscriberId);
     subscriberCollection = NULL;
   }
 
@@ -173,6 +177,20 @@ public:
   {
     subscriberCollection = NULL;
   }
+
+  /**
+   * @brief Check if the referenced subscriber is still active.
+   */
+  bool isSubscribed() const
+  {
+    if (subscriberCollection == NULL)
+    {
+      // empty handle
+      return false;
+    }
+    return subscriberCollection->isSubscribed(subscriberId);
+  }
+
 };
 
 /**

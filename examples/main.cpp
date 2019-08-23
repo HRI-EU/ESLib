@@ -188,7 +188,9 @@ int main()
   // test subscriber handles
   ES::SubscriptionHandle handle = event1->addSubscriber(event1_handler_temp);
   event1->call("With temp");
+  cout << "Subscribed before release: " << boolalpha << handle.isSubscribed() << endl;
   release_subscription(handle);
+  cout << "Subscribed after release: " << boolalpha << handle.isSubscribed() << endl;
   event1->call("Without temp");
 
   // the same with subscription

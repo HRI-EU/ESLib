@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+    <title>RCS Events Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.4.5/fuse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.8.1/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-cose-bilkent@4.0.0/cytoscape-cose-bilkent.min.js"></script>
+    <script src="https://unpkg.com/popper.js@1.14.7/dist/umd/popper.js"></script>
+    <script src="cytoscape-popper.js"></script>
+    <script src="https://unpkg.com/tippy.js@4.0.1/umd/index.all.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@4/themes/light.css" />
+    <link rel="stylesheet" href="bulma.min.css" />
+    <style>
+      html {
+        height: 100vh;
+      }
+      body {
+        min-height: 100%;
+      }
+      #main-content {
+        position: absolute;
+        top: 60px;
+        bottom: 20px;
+        width: 100%;
+      }
+
+      #cy {
+          width: 100%;
+          height: 100%;
+          display: block;
+      }
+    </style>
+
+    <script>
+      // prevent browser from acting on dropped files
+      window.addEventListener("dragover",function(e){
+        e = e || event;
+        e.preventDefault();
+      },false);
+      window.addEventListener("drop",function(e){
+        e = e || event;
+        e.preventDefault();
+      },false);
+
+      function escapeHtml(text) {
+          return text
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+      }
+
+      function splitTemplate(text) {
+        let output = [];
+
+        let bracket_level = 0;
+        let start = 0;
+        let end = 0;
+        for (var i = 0; i < text.length; i++)
+        {
+          if (text[i] == '<')
+          {
+            bracket_level++;
+          }
+          else if (text[i] == '>')
+          {
+            bracket_level--;
+          }
+
+          if (text[i] == ',' && bracket_level == 0)
+          {
+            output.push(text.substring(start, end).trim());
+            start = i + 1;
+            end = start;
+          }
+          else
+          {
+            end++;
+          }
+        }
+
+        if (start < text.length-1)
+        {
+          output.push(text.substring(start, end).trim());
+        }
+
+        return output;
+      }
+
+      function initNodeDetails() {
+        let fuse_list = []
+        cy.nodes().forEach(function(node) {
+            if (!node.data().hasOwnProperty('kind'))
+              return;
+            
+            // add entry to fuse list
+            let fuse_entry = {
+              graphNode: node,
+              name: node.data().name || node.data().eventName,
+              location: node.data().sourceFile || node.data().file
+            };
+            fuse_list.push(fuse_entry);
+
+            let ref = node.popperRef();
+            let tip = tippy(ref, {
+                content: () => {
+                    let content = document.createElement('div');
+                    
+                    let html = '';
+                    
+                    if (node.data().kind == 'subscriber' ||
+                        node.data().kind == 'publisher' ||
+                        node.data().kind == 'registrar')
+                    {
+                      html =   '<div class="card"><header class="card-header has-background-info"><p class="card-header-title has-text-light">' + node.data().kind + '</p>' +
+                               '<p class="has-text-warning"><small>' + node.data().sourceFile + ':' + node.data().sourceLine + '</small></p></header>' +
+                               '<div class="card-content"><div class="content"><strong>' + node.data().eventName + '</strong><br />' +
+                               '<div class="has-text-primary has-text-left">' + (node.data().comments == undefined ? 'no comments' : node.data().comments.replace(/\n/g, '<br />')) + '</div></div>' +
+                               '<footer class="card-footer">';
+                      let sig_components = splitTemplate(node.data().signature);
+                      sig_components.forEach(function(c) { html += '<span class="card-footer-item has-text-info">' + escapeHtml(c) + '</span>'; });
+                      html += '</footer></div>';
+                    }
+                    else if (node.data().kind == 'ClassMethod' || 
+                             node.data().kind == 'FreeFunction' ||
+                             node.data().kind == 'lambda')
+                    {
+                      html = '<div class="card"><header class="card-header has-background-info"><p class="card-header-title has-text-light">' + node.data().kind + '</p>' +
+                             '<p class="has-text-warning">' + node.data().file + ':' + node.data().line + '</p></header>' +
+                             '<div class="card-content"><div class="content"><strong>' + node.data().name + '</strong>' +
+                             '<div class="has-text-primary has-text-left">' + node.data().comments.replace(/\n/g, '<br />') + '</div></div></div>';
+                      if (node.data().kind == 'lambda')
+                      {
+                        html += '<footer class="card-footer">Parameters:';
+                        if (node.data().lambda_params) {
+                            node.data().lambda_params.arguments.forEach( (arg) => {
+                              html += '<span class="card-footer-item has-text-info">' + arg.name + ' : <strong>&nbsp;' + escapeHtml(arg.type) + '</strong></span>';
+                            });
+                        }
+                        else {
+                            html += '<span class="card-footer-item">()</span>'
+                            console.log(node.data());
+                        }
+                        html += '</footer><footer class="card-footer">Captures:'
+                        if (node.data().lambda_params) {
+                            node.data().lambda_params.captures.forEach( (cap) => {
+                              html += '<span class="card-footer-item has-text-primary">' + cap.name + ' : <strong>&nbsp;' + escapeHtml(cap.type) + '</strong></span>';
+                            });
+                        } else {
+                            html += '<span class="card-footer-item">[]</span>';
+                        }
+                        html += '</footer>';
+                      }
+                      html += '</div>';
+                    }
+                    content.innerHTML = html;
+                    return content;
+                },
+                trigger: 'manual',
+                hideOnClick: false,
+                arrow: true,
+                placement: 'top',
+                sticky: true,
+                maxWidth: '100%',
+                theme: 'light'
+            });
+            
+            node.on('click', () => {
+              console.log(node.data());
+            });
+            node.on('mouseover', () => { 
+                tip.show(500);
+            });
+            node.on('mouseout unfocus', () => { 
+                tip.hide(500);
+            });
+        });
+
+        let fuse_options = {
+          tokenize: true,
+          threshold: 0.15,
+          location: 0,
+          distance: 1000,
+          maxPatternLength: 22,
+          minMatchCharLength: 4,
+          keys: [
+            "location",
+            "name"            
+          ]
+        };
+        var fuse = new Fuse(fuse_list, fuse_options);
+        document.querySelector('#searchbox').addEventListener('input', (e) => {
+           let ele = e.srcElement || e.target
+           let searchstr = ele.value;
+           let res = fuse.search(searchstr);
+           cy.nodes().removeClass('selected');
+           if (res.length > 0)
+           {
+             let touched = []
+             res.forEach((entry) => {
+                if (!entry.graphNode.parent().data)
+                  console.log(entry.graphNode, entry.graphNode.parent())
+                if (touched.includes(entry.graphNode.parent().data().id))
+                  return;
+                touched.push(entry.graphNode.parent().data().id);
+                entry.graphNode.parent().addClass('selected');
+             });
+           }
+        });
+      }
+      function loadFile(file) {
+        document.getElementById('main-content').classList.add('has-background-grey');
+
+        // loading notifier
+        let loadDiv = document.createElement('div');
+        loadDiv.id = 'loading-notification';
+        loadDiv.className = 'navbar-item';
+        loadDiv.style = 'width:50%';
+        loadDiv.innerHTML = '<div class="notification is-warning">Loading file: ' + file.name + '</div>';
+        document.getElementById('main-nav-bar').insertBefore(loadDiv, document.getElementById('main-nav-bar-end'));
+
+        cy.elements().remove();
+        let reader = new FileReader()
+        reader.onload = (evt) => {
+          let eles = JSON.parse(evt.target.result);
+
+          loadGraph(eles);
+
+          document.getElementById('main-content').classList.remove('has-background-grey');
+          document.getElementById('loading-notification').remove();
+          document.getElementById('loaded-file-name').innerHTML = file.name;
+        }
+        
+        setTimeout(() => {
+          reader.readAsText(file);
+        }, 1);
+      }
+
+      function loadGraph( eles ) {
+          cy.add(eles);
+          let layout = cy.layout({
+              name: 'cose-bilkent'
+          });
+          layout.run();
+          initNodeDetails();
+      }
+
+      function onFileDropped(event) {
+        if (event.dataTransfer.items) {
+          // Use DataTransferItemList interface to access the file(s)
+          for (var i = 0; i < event.dataTransfer.items.length; i++) {
+            // If dropped items aren't files, reject them
+            if (event.dataTransfer.items[i].kind === 'file') {
+              var file = event.dataTransfer.items[i].getAsFile();
+              loadFile(file);
+            }
+          }
+        } else {
+          // Use DataTransfer interface to access the file(s)
+          for (var i = 0; i < event.dataTransfer.files.length; i++) {
+            loadFile(file);
+          }
+        }
+      }
+    </script>
+</head>
+<body class="has-navbar-fixed-top">
+    <nav class="navbar is-fixed-top is-dark">
+      <div id="main-nav-bar" class="navbar-menu">
+        <div id="main-nav-bar-start" class="navbar-start">
+          <div class="navbar-item">
+            Search:
+          </div>
+          <div class="navbar-item">
+            <input class="input is-primary" type="text" id="searchbox">
+          </div>
+        </div>
+        <div id="main-nav-bar-end" class="navbar-end">
+          <div id="loaded-file-name" class="navbar-item has-text-primary">
+            <span class="has-text-warning">
+              ! &nbsp; &nbsp;
+            </span>
+            <span class="has-text-danger">NO FILE LOADED</span>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div id='main-content' ondrop='event.preventDefault();onFileDropped(event);'>
+      <div id='cy'></div>
+    </div>
+
+    <script>
+        var cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: [],
+
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'border-color': '#699',
+                        'label': 'data(id)',
+                        'min-zoomed-font-size': '10px'
+                    }
+                },
+                {
+                    selector: '.subscriber',
+                    style: {
+                        'background-color': '#0a4ea1',
+                        'label': 'data(kind)'
+                    }
+                },
+                {
+                    selector: '.publisher',
+                    style: {
+                        'background-color': '#2bcee0',
+                        'label': 'data(kind)',
+                        'shape': 'diamond'
+                    }
+                },
+                {
+                    selector: '.group',
+                    style: {
+                      'font-size': '26px'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'curve-style': 'bezier',
+                        'width': 3,
+                        'line-color': '#a0b7db',
+                        'opacity': 1.0,
+                        'target-arrow-color': '#666',
+                        'target-arrow-shape': 'triangle'
+                    }
+                },
+                {
+                    selector: '.signaturemismatch',
+                    style: {
+                        'line-color': '#e60b3e',
+                        'opacity': 1.0
+                    }
+                },
+                {
+                    selector: '.directcall',
+                    style: {
+                      'line-color': '#ff8',
+                      'opacity': 1.0,
+                      'line-style': 'dashed'
+                    }
+                },
+                {
+                    selector: '.registration',
+                    style: {
+                      'line-color': '#88f',
+                      'opacity': 0.2,
+                      'line-style': 'dashed',
+                      'target-arrow-shape': 'none'
+                    }
+                },
+                {
+                    selector: '.registrar',
+                    style: {
+                      'background-color': '#ebbd34',
+                      'opacity': 0.5,
+                      'label': 'data(kind)'
+                    }
+                },
+                {
+                    selector: '.callbackfn',
+                    style: {
+                      'background-color': '#298c87',
+                      'label': 'data(name)',
+                      'shape': 'hexagon',
+                      'border-width': '4px',
+                      'border-color': '#fcba03'
+                    }
+                },
+                {
+                    selector: '.ClassMethod',
+                    style: {
+                      'background-color': '#b989cc'
+                    }
+                },
+                {
+                    selector: '.FreeFunction',
+                    style: {
+                      'background-color': '#90e5e8'
+                    }
+                },
+                {
+                    selector: '.lambda',
+                    style: {
+                      'background-color': '#89ccbb'
+                    }
+                },
+                {
+                    selector: '.selected',
+                    style: {
+                      'background-color': '#79edbb',
+                      'font-size': '32px'
+                    }
+                }
+            ],
+            layout: {
+                name: 'cose-bilkent'
+            }
+        });
+
+        /// Target-specific graph template
+        /// Used by event-graph.py to produce standalone graph visualizers for a specific graph
+        /** +-+     template start
+         let graphEles = {:graph:};
+         loadGraph(graphEles);
+         document.getElementById('loaded-file-name').innerHTML = "{:  graph_name :}";
+           template end      -+- **/
+    </script>
+</body>
+</html>

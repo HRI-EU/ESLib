@@ -32,15 +32,23 @@ TARGET_INCLUDE_DIRECTORIES(TestEventSystem PRIVATE ${EventSystem_INCLUDE_DIR})
 # Generate documentation
 ADD_SUBDIRECTORY(doc)
 
+# Add validation to cmake path
+LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/utils/cmake)
+
 # Installation of headers & co - do this even if we're a subproject.
 
 # Install header files
 INSTALL(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIR}/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+# Install validation files
+SET(VALIDATION_INSTALL_DIR share/ESLibValidation)
+INSTALL(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/utils/ DESTINATION ${VALIDATION_INSTALL_DIR})
+
 # Generate package config/version
 CONFIGURE_PACKAGE_CONFIG_FILE(${PROJECT_NAME}Config.cmake.in
                               "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-                              INSTALL_DESTINATION share/cmake/${PROJECT_NAME})
+                              INSTALL_DESTINATION share/cmake/${PROJECT_NAME}
+                              PATH_VARS VALIDATION_INSTALL_DIR CMAKE_INSTALL_INCLUDEDIR)
 
 WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
                                  VERSION ${${PROJECT_NAME}_VERSION}

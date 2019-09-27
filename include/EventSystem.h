@@ -338,9 +338,9 @@ public:
   /**
    * @brief Process all events in the queue. If more events are queued during processing, they are picked up as well.
    */
-  void processUntilEmpty()
+  int  processUntilEmpty(int maxProcessCalls=-1)
   {
-    dynamicQueue.processUntilEmpty();
+    return dynamicQueue.processUntilEmpty(maxProcessCalls);
   }
 
   /**

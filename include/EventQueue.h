@@ -264,10 +264,30 @@ public:
   /**
    * @brief Process all events in the queue. If more events are queued during processing, they are picked up as well.
    */
-  void processUntilEmpty()
+  int processUntilEmpty(int maxProcessCalls=-1)
   {
+    int nProcessCalls = 0;
+    bool entriesInQueue = true;
+
     // simply call process until the queue is empty.
-    while (process());
+    while (entriesInQueue)
+    {
+      if ((maxProcessCalls!=-1) && (nProcessCalls == maxProcessCalls))
+      {
+        break;
+      }
+
+      entriesInQueue = process();
+
+      if (!entriesInQueue)
+      {
+        break;
+      }
+
+      nProcessCalls++;
+    }
+
+    return nProcessCalls;
   }
 
   /**

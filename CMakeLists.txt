@@ -30,7 +30,9 @@ ADD_EXECUTABLE(TestEventSystem
 TARGET_INCLUDE_DIRECTORIES(TestEventSystem PRIVATE ${EventSystem_INCLUDE_DIR})
 
 # Generate documentation
-ADD_SUBDIRECTORY(doc)
+IF (EventSystem_MASTER_PROJECT)
+  ADD_SUBDIRECTORY(doc)
+ENDIF()
 
 # Add validation to cmake path
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/utils/cmake)

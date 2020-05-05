@@ -17,11 +17,15 @@ ENDIF()
 # Unfortunately, cmake 2.8 doesn't support interface targets. We use a variable instead.
 SET(EventSystem_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
 
-# This also means that we can't force C++11 effectively - do it the old-fashioned way
+# This also means that we can't force C++11 effectively - do it the old-fashioned way. 
 IF(UNIX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF()
-# TODO windows. If even necessary, since windows isn't stuck with old cmake/gcc like linux...
+
+# Target for header-only ESlib library. Adding this to the target_link_libraries will
+# automatically inherit the include path.
+ADD_LIBRARY(ESlib INTERFACE)
+TARGET_INCLUDE_DIRECTORIES(ESlib INTERFACE ${EventSystem_INCLUDE_DIR})
 
 # A test executable
 ADD_EXECUTABLE(TestEventSystem 

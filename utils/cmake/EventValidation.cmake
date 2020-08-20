@@ -112,7 +112,9 @@ else()
         endif()
     endfunction()
 
-    add_custom_target(map_all_events
+    if (ESLIB_VALIDATE_EVENTS)
+
+      add_custom_target(map_all_events
             COMMAND python "${ESLIB_UTIL_ROOT}/event-scan.py" "${CMAKE_BINARY_DIR}" "${CMAKE_BINARY_DIR}/All_eventdata.json" "${CMAKE_SOURCE_DIR}"
             COMMAND python "${ESLIB_UTIL_ROOT}/event-graph.py" "${CMAKE_BINARY_DIR}/All_eventdata.json" "${CMAKE_BINARY_DIR}/All_eventgraph.json"
             COMMENT "Gathering and mapping event usage for all RCS sources..."
@@ -127,4 +129,7 @@ else()
             DEPENDS map_all_events
             COMMENT "Verifying event usage for all RCS sources..."
             )
+
+	endif (ESLIB_VALIDATE_EVENTS)
+	
 endif()

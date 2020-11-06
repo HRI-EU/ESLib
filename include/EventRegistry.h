@@ -40,7 +40,8 @@
 #include <sstream>
 #include <mutex>
 
-namespace ES {
+namespace ES
+{
 
 /**
  * @brief EventRegistry matches events by their decayed argument types.
@@ -121,18 +122,49 @@ public:
     return subscribersByEventName;
   }
 
+  template<typename ...Args>
+  bool hasRegisteredEvent(std::string name)
+  {
+    // aquire mutex - released automatically on return
+    std::unique_lock<std::mutex> lock(registryMutex);
+
+    // check if the event was registered before
+    auto existing = subscribersByEventName.find(name);
+
+    // no such name - return failure
+    if (existing == subscribersByEventName.end())
+    {
+      return false;
+    }
+
+    // duplicate, check that the template args match
+    SubscriberCollectionBase* hcBase = existing->second;
+
+    // use dynamic_cast to properly detect failure
+    auto hc = dynamic_cast<SubscriberCollectionDecay<Args...>* >(hcBase);
+
+    if (hc == NULL)
+    {
+      // the cast failed, so the template arguments do not match.
+      return false;
+    }
+
+    // We found it - return success
+    return true;
+  }
+
   /**
-   * @brief Register a named event and return the subscriber collection for it.
-   *
-   * The subscriber collection will be owned by the event system.
-   *
-   * @tparam Args event argument types
-   * @param name event name
-   *
-   * @return subscriber collection for the registered event.
-   *
-   * @throws std::invalid_argument if the event is already registered.
-   */
+     * @brief Register a named event and return the subscriber collection for it.
+     *
+     * The subscriber collection will be owned by the event system.
+     *
+     * @tparam Args event argument types
+     * @param name event name
+     *
+     * @return subscriber collection for the registered event.
+     *
+     * @throws std::invalid_argument if the event is already registered.
+     */
   template<typename ...Args>
   SubscriberCollectionDecay<Args...>* registerEvent(std::string name)
   {

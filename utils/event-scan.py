@@ -9,7 +9,7 @@ from pathlib import Path
 init()
 
 project_root = '/'
-exclude_files = ['/projects/ECS/EventGui.cpp']
+exclude_files = ['/DexterousCooperation/src/DcEventGui/EventGui.cpp']
 subscribe_calls = Queue()
 publish_calls = Queue()
 call_calls = Queue()
@@ -46,6 +46,8 @@ def visit_node(node, subscribe_calls, publish_calls, register_calls, call_calls)
         if node.spelling == "subscribe":
             sem = node.get_definition().semantic_parent
             if sem and sem.type.spelling.startswith('ES::EventSystem'):
+                subscribe_calls.append({'call': node, 'parent': potential_parent})
+            if sem and sem.type.spelling.startswith('Rcs::ComponentBase'):
                 subscribe_calls.append({'call': node, 'parent': potential_parent})
 
         elif node.spelling == "publish":

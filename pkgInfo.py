@@ -1,24 +1,50 @@
 # -*- coding: utf-8 -*-
 #
-#  Custom package settings
+#  Copyright (c) 2020, Honda Research Institute Europe GmbH.
+#  All rights reserved.
 #
-#  Copyright (C)
-#  Honda Research Institute Europe GmbH
-#  Carl-Legien-Str. 30
-#  63073 Offenbach/Main
-#  Germany
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
 #
-#  UNPUBLISHED PROPRIETARY MATERIAL.
-#  ALL RIGHTS RESERVED.
+#  1. Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
 #
+#  2. Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY EXPRESS OR
+#  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+#  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+#  IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT,
+#  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+#  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+#  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+#  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+#  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+#  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 name = "ESLib"
 
+version="1.0"
+
 category="Libraries"
 
-sqOptOutRules    = [ 'GEN03', 'GEN04', 'GEN07', 'GEN10', 'C02', 'C06', 'DOC01', 'DOC04' ]
+sqLevel = "advanced"
 
-sqComments       = {"GEN03":"Not feasible for C++ template library since readability suffers massively","GEN04":"Software will be open-sourced and will receive a different header","GEN10":"Software will be made accessible for University partners and will be hosted in a public Git repository","C02":"Software entirely written in C++","C06":"Software is template library, inline rule not applicable","DOC01":"Doxygen mainpage exists under doc folder","DOC04":"Should not be public outside HRI-EU"}
+copyright        = 'Copyright (c) 2017, Honda Research Institute Europe GmbH'
+
+sqOptOutRules    = [ 'GEN03' ]
+
+sqComments       = {"GEN03":"Reluctant breaking long lines in python due to white space semantics"}
+
+gitOriginForCIA  = 'git@dmz-gitlab.honda-ri.de:GeneralRobotics/ESLib.git'
+
+gitBranchForCIA = 'develop'
 
 
 

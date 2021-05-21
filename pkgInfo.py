@@ -42,6 +42,9 @@ sqOptOutRules    = [ 'GEN03' ]
 
 sqComments       = {"GEN03":"Reluctant breaking long lines in python due to white space semantics"}
 
+gitOriginForCIA  = 'git@dmz-gitlab.honda-ri.de:GenRob/ESLib.git'
+
+gitBranchForCIA = 'develop'
 
 
 # EOF

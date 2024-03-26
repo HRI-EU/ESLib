@@ -32,4 +32,6 @@
 #
 #
 
-build/${MAKEFILE_PLATFORM}/TestEventSystem 
+set -euo pipefail
+
+build/"${MAKEFILE_PLATFORM}"/TestEventSystem 

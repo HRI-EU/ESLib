@@ -29,7 +29,9 @@
 #  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-cd build/${MAKEFILE_PLATFORM}
+set -euo pipefail
+
+cd build/"${MAKEFILE_PLATFORM}"
 make doc
 make install
 

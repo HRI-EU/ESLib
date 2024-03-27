@@ -78,7 +78,7 @@ LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/utils/cmake)
 # Installation of headers & co - do this even if we're a subproject.
 
 # Install header files
-INSTALL(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIR}/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+INSTALL(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIR}/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ESLib)
 
 # Install validation files
 SET(VALIDATION_INSTALL_DIR share/ESLibValidation)

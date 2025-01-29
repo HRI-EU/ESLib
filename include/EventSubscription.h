@@ -41,6 +41,8 @@
 #define EVENTSUBSCRIPTION_H_
 
 #include <iosfwd>
+#include <cstddef>
+
 
 namespace ES {
 

@@ -40,7 +40,8 @@
 
 #include <mutex>
 
-namespace ES {
+namespace ES
+{
 
 /**
  * @brief Allows to asynchronously queue events to be fired at a later point in time.
@@ -73,7 +74,7 @@ private:
     QueuedEventBase* next;
 
     QueuedEventBase() :
-        next(NULL)
+      next(NULL)
     {
     }
 
@@ -100,8 +101,8 @@ private:
 
   public:
     QueuedEvent(const SubscriberCollection<Args...>* handlerRef,
-        std::tuple<Args...> args) :
-        handlerRef(handlerRef), args(args)
+                std::tuple<Args...> args) :
+      handlerRef(handlerRef), args(args)
     {
     }
     virtual ~QueuedEvent() = default;
@@ -143,7 +144,7 @@ private:
 public:
   /// @brief Create an empty event queue.
   EventQueue() :
-      eventQueueHead(NULL), eventQueueTail(NULL)
+    eventQueueHead(NULL), eventQueueTail(NULL)
   {
   }
 
@@ -158,7 +159,7 @@ public:
     if (eventQueueHead != NULL)
     {
       printf("Warning: destroying EventQueue while some events are still "
-          "queued. Unhandled events will be discarded.\n");
+             "queued. Unhandled events will be discarded.\n");
 
       QueuedEventBase* cur = eventQueueHead;
       while (cur != NULL)
@@ -198,7 +199,7 @@ public:
    */
   template<typename ...Args>
   void enqueue_tuple(const SubscriberCollection<Args...>* handlerRef,
-      std::tuple<Args...> args)
+                     std::tuple<Args...> args)
   {
     // create queued event object
     auto* event = new QueuedEvent<Args...>(handlerRef, args);
@@ -295,7 +296,8 @@ public:
    *
    * @return true if an event was processed.
    */
-  bool processOne() {
+  bool processOne()
+  {
     // unique_lock makes sure exceptions are handled
     std::unique_lock<std::recursive_mutex> guard(queueMutex, std::defer_lock);
     // aquire mutex
@@ -304,7 +306,8 @@ public:
 
     // obtain head queued event
     QueuedEventBase* toProcess = eventQueueHead;
-    if (toProcess == NULL) {
+    if (toProcess == NULL)
+    {
       // queue is empty
       return false;
     }
@@ -312,7 +315,8 @@ public:
     // remove from head
     eventQueueHead = toProcess->next;
     // reset tail if empty
-    if (toProcess == eventQueueTail) {
+    if (toProcess == eventQueueTail)
+    {
       eventQueueTail = NULL;
     }
 
@@ -343,7 +347,8 @@ public:
 
     // obtain head queued event
     QueuedEventBase* cur = eventQueueHead;
-    if (cur == NULL) {
+    if (cur == NULL)
+    {
       // queue is empty
       return;
     }
@@ -489,12 +494,22 @@ public:
 
   }
 
+  /**
+   * @brief Convenience function to pass lambda that must be executed outside
+   *         the process() call.
+   */
+  void withProcessLock(std::function<void()> func)
+  {
+    std::lock_guard<std::recursive_mutex> guard(queueMutex);
+    func();  // safely executes under lock
+  }
+
 };
 
 // now, we can define the implementation of EventParametersParser::enqueueEvent
 template<typename ... Args>
 inline void EventParametersParser<Args...>::enqueueEvent(EventQueue* queue,
-    const std::vector<std::string>& parameterStrings) const
+                                                         const std::vector<std::string>& parameterStrings) const
 {
   queue->enqueue_tuple(subscriberCollection, parseArgs(parameterStrings));
 }

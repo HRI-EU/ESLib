@@ -29,7 +29,7 @@
 #  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ################################################################################
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+#CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 SET(BST_INSTALL_CATEGORY Libraries) 
 
 PROJECT(EventSystem)
